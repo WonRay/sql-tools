@@ -1,40 +1,47 @@
 package com.zzwtec.sql.info;
 
+/**
+ * 封装括号信息
+ * @author 毛文超
+ * **/
 public class BracketsInfo {
-    //括号的索引
-    private int bracketsIndex;
+    //左括号的索引
+    private int leftBracketsIndex;
+    //左括号的索引
+    private int rightBracketsIndex;
     //该括号是否有效
-    private boolean conditionEffective;
     //括号内的有效条件个个数
     private int effectiveConditionCount;
 
-    public BracketsInfo(int bracketsIndex, boolean conditionEffective, int effectiveConditionCount) {
-        this.bracketsIndex = bracketsIndex;
-        this.conditionEffective = conditionEffective;
-        this.effectiveConditionCount = effectiveConditionCount;
+    public BracketsInfo(int leftBracketsIndex, int rightBracketsIndex) {
+        this.leftBracketsIndex = leftBracketsIndex;
+        this.rightBracketsIndex = rightBracketsIndex;
     }
 
-    public int getBracketsIndex() {
-        return bracketsIndex;
+    public BracketsInfo() {
     }
 
-    public void setBracketsIndex(int bracketsIndex) {
-        this.bracketsIndex = bracketsIndex;
+    public int getLeftBracketsIndex() {
+        return leftBracketsIndex;
     }
 
-    public boolean isConditionEffective() {
-        return conditionEffective;
+    public void setLeftBracketsIndex(int leftBracketsIndex) {
+        this.leftBracketsIndex = leftBracketsIndex;
     }
 
-    public void setConditionEffective(boolean conditionEffective) {
-        this.conditionEffective = conditionEffective;
+    public int getRightBracketsIndex() {
+        return rightBracketsIndex;
     }
 
-    public int getEffectiveConditionCount() {
-        return effectiveConditionCount;
+    public void setRightBracketsIndex(int rightBracketsIndex) {
+        this.rightBracketsIndex = rightBracketsIndex;
     }
 
-    public void setEffectiveConditionCount(int effectiveConditionCount) {
-        this.effectiveConditionCount = effectiveConditionCount;
+    public void addConditionCount(){
+        this.effectiveConditionCount++;
+    }
+
+    public boolean isEffectiveCondition(){
+        return this.effectiveConditionCount > 1;
     }
 }
