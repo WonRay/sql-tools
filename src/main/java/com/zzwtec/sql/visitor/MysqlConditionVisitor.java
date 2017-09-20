@@ -4,6 +4,7 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.*;
 import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.*;
+import com.alibaba.druid.sql.dialect.mysql.ast.MySqlKey;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
 import com.zzwtec.sql.info.BracketsInfo;
@@ -208,10 +209,12 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
             operator = x.getOperator();
         }
         if( !(operator == SQLBinaryOperator.BooleanAnd || operator == SQLBinaryOperator.BooleanOr)){//这里一般都是单独的表达式,需要进行单独的处理
-            if(x.getParent() instanceof SQLJoinTableSource){
+            if(x.getParent() instanceof SQLJoinTableSource){//判断用于表连接时出现的条件,一般都是单个条件
                 print0(" "+SQLUtils.toSQLString(x) + "");
+            }else {
+                //一般的查询单个条件
+                visitBinaryExpr(x,true);
             }
-
             return false;
         }
 
@@ -308,17 +311,20 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
 
     @Override
     public boolean visit(SQLInListExpr x) {
-        SQLExpr sqlExpr = x.getExpr();
-        String sqlExprValue = SQLUtils.toSQLString(sqlExpr);
-        boolean contains = condition.contains(sqlExprValue);//判断是否包涵
-        if(contains){
-            print0(" " + SQLUtils.toSQLString(x) + " ");
-            WhereInfo whereInfo = whereInfos.peek();//获取where信息
-            if(whereInfo != null){
-                whereInfo.addConditionCount();//计数器+1
-            }
-        }
+        visitBinaryExpr(x,true);
+        return false;
+    }
 
+
+    @Override
+    public boolean visit(SQLBetweenExpr x) {
+        visitBinaryExpr(x,true);
+        return false;
+    }
+
+    @Override
+    public boolean visit(SQLInSubQueryExpr x) {
+        visitBinaryExpr(x,true);
         return false;
     }
 
