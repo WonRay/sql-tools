@@ -14,10 +14,9 @@ public class TestSql {
 
     @Test
     public void test(){
-        String sql = "insert into ccp_mem(age) SELECT age FROM user LEFT JOIN ( SELECT user_id FROM order_item WHERE status = ?) orderItem ON orderItem.user_id = user.id WHERE user.name LIKE ? or sex = ?";
+        String sql = "select * from ccp_mem where Name = ? and Age = ?";
         List<String> para = new ArrayList<>();
-        para.add("sex");
-       // para.add("user.name");
+        para.add("Name");
         String s = ZSQLUtils.mysqSqlFilter(sql, para);
         System.out.println(s);
     }
