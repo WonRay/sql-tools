@@ -5,7 +5,9 @@ import com.alibaba.druid.sql.ast.*;
 import com.alibaba.druid.sql.ast.expr.*;
 import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.mysql.ast.MySqlKey;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlDeleteStatement;
 import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlSelectQueryBlock;
+import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlUpdateStatement;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
 import com.zzwtec.sql.info.BracketsInfo;
 import com.zzwtec.sql.info.OperatorInfo;
@@ -40,6 +42,144 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
 
         return super.visit(select);
 
+    }
+
+    @Override
+    public boolean visit(MySqlDeleteStatement x) {
+        print0(ucase ? "DELETE " : "delete ");
+
+        for (int i = 0, size = x.getHintsSize(); i < size; ++i) {
+            SQLCommentHint hint = x.getHints().get(i);
+            hint.accept(this);
+            print(' ');
+        }
+
+        if (x.isLowPriority()) {
+            print0(ucase ? "LOW_PRIORITY " : "low_priority ");
+        }
+
+        if (x.isQuick()) {
+            print0(ucase ? "QUICK " : "quick ");
+        }
+
+        if (x.isIgnore()) {
+            print0(ucase ? "IGNORE " : "ignore ");
+        }
+
+        if (x.getFrom() == null) {
+            print0(ucase ? "FROM " : "from ");
+            x.getTableSource().accept(this);
+        } else {
+            x.getTableSource().accept(this);
+            println();
+            print0(ucase ? "FROM " : "from ");
+            x.getFrom().accept(this);
+        }
+
+        if (x.getUsing() != null) {
+            println();
+            print0(ucase ? "USING " : "using ");
+            x.getUsing().accept(this);
+        }
+
+        SQLExpr where = x.getWhere();//又到了重点部分
+        if (where != null) {
+            println();
+            this.indentCount++;
+            printWhere();
+            printExpr(where);
+            this.indentCount--;
+        }
+
+        if (x.getOrderBy() != null) {
+            println();
+            x.getOrderBy().accept(this);
+        }
+
+        if (x.getLimit() != null) {
+            println();
+            x.getLimit().accept(this);
+        }
+
+        deleteWhere();
+        return false;
+    }
+
+    @Override
+    public boolean visit(MySqlUpdateStatement x) {
+        if (x.getReturning() != null && x.getReturning().size() > 0) {
+            print0(ucase ? "SELECT " : "select ");
+            printAndAccept(x.getReturning(), ", ");
+            println();
+            print0(ucase ? "FROM " : "from ");
+        }
+
+        print0(ucase ? "UPDATE " : "update ");
+
+        if (x.isLowPriority()) {
+            print0(ucase ? "LOW_PRIORITY " : "low_priority ");
+        }
+
+        if (x.isIgnore()) {
+            print0(ucase ? "IGNORE " : "ignore ");
+        }
+
+        if (x.isCommitOnSuccess()) {
+            print0(ucase ? "COMMIT_ON_SUCCESS " : "commit_on_success ");
+        }
+
+        if (x.isRollBackOnFail()) {
+            print0(ucase ? "ROLLBACK_ON_FAIL " : "rollback_on_fail ");
+        }
+
+        if (x.isQueryOnPk()) {
+            print0(ucase ? "QUEUE_ON_PK " : "queue_on_pk ");
+        }
+
+        SQLExpr targetAffectRow = x.getTargetAffectRow();
+        if (targetAffectRow != null) {
+            print0(ucase ? "TARGET_AFFECT_ROW " : "target_affect_row ");
+            printExpr(targetAffectRow);
+            print(' ');
+        }
+
+        printTableSource(x.getTableSource());
+
+        println();
+        print0(ucase ? "SET " : "set ");
+        for (int i = 0, size = x.getItems().size(); i < size; ++i) {
+            if (i != 0) {
+                print0(", ");
+            }
+            SQLUpdateSetItem item = x.getItems().get(i);
+            visit(item);
+        }
+
+        SQLExpr where = x.getWhere();//解析where条件的地方,魔改它
+
+        if (where != null) {
+            println();
+            indentCount++;
+            printWhere();
+            printExpr(where);//解析where条件表达式
+            indentCount--;
+        }
+
+        SQLOrderBy orderBy = x.getOrderBy();
+        if (orderBy != null) {
+            println();
+            visit(orderBy);
+        }
+
+        SQLLimit limit = x.getLimit();
+        if (limit != null) {
+            println();
+            visit(limit);
+        }
+
+        deleteWhere();
+
+        return false;
     }
 
     @Override
@@ -122,11 +262,13 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
         SQLExpr where = x.getWhere();
         if (where != null) {
             println();
-            WhereInfo whereInfo = new WhereInfo();//记录下where 关键字的信息
+          /*  WhereInfo whereInfo = new WhereInfo();//记录下where 关键字的信息
             whereInfo.setWhereStartIndex(getAppendLength() - 1);//记录where关键字的开始索引
             print0(ucase ? "WHERE " : "where ");
             whereInfo.setWhereEndIndex(getAppendLength() - 1);//记录where关键字的结束索引
-            whereInfos.push(whereInfo);//把where关键字信息压入栈
+            whereInfos.push(whereInfo);//把where关键字信息压入栈*/
+            printWhere();
+
             printExpr(where);//解析where条件表达式
         }
 
@@ -183,17 +325,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
             print(')');
         }
 
-        if(!whereInfos.isEmpty()){
-            WhereInfo whereInfo = whereInfos.pop();
-            if(whereInfo != null){
-                boolean effectiveCondition = whereInfo.isEffectiveCondition();
-                if(!effectiveCondition){//如果有效条件为0的话,删除where关键字
-                    int whereStartIndex = whereInfo.getWhereStartIndex();
-                    int whereEndIndex = whereInfo.getWhereEndIndex();
-                    deleteStr(whereStartIndex,whereEndIndex + 1);
-                }
-            }
-        }
+        deleteWhere();
 
         return false;
     }
@@ -352,6 +484,8 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
             boolean contains = condition.contains(SQLUtils.toSQLString(conditionName));//在条件字段中判断是否包涵,如果不包含,就剔除该条件,当然不是修ast
             if(contains){
                 if(((SQLBinaryOpExpr) sqlExpr).getRight() instanceof SQLQueryExpr){
+                    effectWhere();//条件是生效的
+                    effectOperatorInfo(sqlExpr,isRight);
                     print0(((SQLBinaryOpExpr) sqlExpr).getLeft().toString() + " ");
                     print0(((SQLBinaryOpExpr) sqlExpr).getOperator().name);
                     print0(" ( ");
@@ -385,7 +519,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
                 if(((SQLInSubQueryExpr) sqlExpr).isNot()){
                      print0(ucase ? "NOT IN " : "not in ");
                 }else{
-                     print0(ucase ? "NOT IN " : "NOT in ");
+                     print0(ucase ? "IN " : "in ");
                 }
 
                 print0(" ( ");
@@ -424,17 +558,27 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
     //条件处理
     private void handCondition(SQLExpr sqlExpr,boolean isRight){
         print0(" " + SQLUtils.toSQLString(sqlExpr) + " \n");
+        effectBracketsInfo();
+        effectWhere();
+        effectOperatorInfo(sqlExpr,isRight);
+    }
+
+    private void effectBracketsInfo(){
+
         BracketsInfo bracketsInfo = bracketsInfos.peek();//获取括号信息
-        WhereInfo whereInfo = whereInfos.peek();//获取where信息
         if(bracketsInfo != null){//如果不为空的话,说明之前添加过右括号的,所以这里要判断一下
             bracketsInfo.addConditionCount();//计数器+1
         }
+    }
 
+    private void effectWhere(){
+        WhereInfo whereInfo = whereInfos.peek();//获取where信息
         if(whereInfo != null){
             whereInfo.addConditionCount();//计数器+1
         }
+    }
 
-//                OperatorInfo operatorInfo = operatorInfos.peek();//获取表达式连接符信息
+    private void effectOperatorInfo(SQLExpr sqlExpr,boolean isRight){
         OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().toString());
         if(operatorInfo != null){//判断是否为空
             if(isRight){//判断是否是左边还是右边的表达式
@@ -443,6 +587,31 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
                 operatorInfo.setLeftCondition(true);
             }
         }
+
+    }
+
+
+    private void deleteWhere(){
+        if(!whereInfos.isEmpty()){
+            WhereInfo whereInfo = whereInfos.pop();
+            if(whereInfo != null){
+                boolean effectiveCondition = whereInfo.isEffectiveCondition();
+                if(!effectiveCondition){//如果有效条件为0的话,删除where关键字
+                    int whereStartIndex = whereInfo.getWhereStartIndex();
+                    int whereEndIndex = whereInfo.getWhereEndIndex();
+                    deleteStr(whereStartIndex,whereEndIndex + 1);
+                }
+            }
+        }
+
+    }
+
+    private void printWhere(){
+        WhereInfo whereInfo = new WhereInfo();//记录下where 关键字的信息
+        whereInfo.setWhereStartIndex(getAppendLength() - 1);//记录where关键字的开始索引
+        print0(ucase ? "WHERE " : "where ");
+        whereInfo.setWhereEndIndex(getAppendLength() - 1);//记录where关键字的结束索引
+        whereInfos.push(whereInfo);//把where关键字信息压入栈
 
     }
 
