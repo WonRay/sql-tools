@@ -25,8 +25,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
     //括号栈
     private LinkedBlockingDeque<BracketsInfo> bracketsInfos = new LinkedBlockingDeque<>(10);
     private LinkedBlockingDeque<WhereInfo> whereInfos = new LinkedBlockingDeque<>(5);
- //   private LinkedBlockingDeque<OperatorInfo> operatorInfos = new LinkedBlockingDeque<>(10);
-    private Map<String,OperatorInfo> operatorInfoMpa = new HashMap<>();
+    private Map<Integer,OperatorInfo> operatorInfoMpa = new HashMap<>();
     private List<String> condition;//条件字段集合
 
     public MysqlConditionVisitor(List<String> condition,Appendable appendable) {
@@ -262,11 +261,6 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
         SQLExpr where = x.getWhere();
         if (where != null) {
             println();
-          /*  WhereInfo whereInfo = new WhereInfo();//记录下where 关键字的信息
-            whereInfo.setWhereStartIndex(getAppendLength() - 1);//记录where关键字的开始索引
-            print0(ucase ? "WHERE " : "where ");
-            whereInfo.setWhereEndIndex(getAppendLength() - 1);//记录where关键字的结束索引
-            whereInfos.push(whereInfo);//把where关键字信息压入栈*/
             printWhere();
 
             printExpr(where);//解析where条件表达式
@@ -364,24 +358,13 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
         SQLExpr left = x.getLeft();
         SQLExpr right = x.getRight();
 
-        //简单的解释一下,如果当前左边的表达式中的连接符跟当前的表达式的连接符一样的话,就把左边的表达式中的右边的表达式放入在group list中去,持续循环下去,直到左边的表达式中的连接符
-        //与他的父表达式的连接符不一致位置,这样做的目的是为了找出与父表达式的相同连接符的表达式,也相当于是个拆分吧.达到从左到右的一个解析的顺序的目的
-        /*for (;;) {
-            if (left instanceof SQLBinaryOpExpr && ((SQLBinaryOpExpr) left).getOperator() == operator) {
-                SQLBinaryOpExpr binaryLeft = (SQLBinaryOpExpr) left;
-                groupList.add(binaryLeft.getRight());
-                left = binaryLeft.getLeft();
-            } else {
-                groupList.add(left);
-                break;
-            }
-        }*/
 
         OperatorInfo operatorInfoLeft = new OperatorInfo();//创建连接符信息
-        operatorInfoMpa.put(left.getParent().toString(),operatorInfoLeft);
+        operatorInfoMpa.put(left.getParent().hashCode(),operatorInfoLeft);
         visitBinaryExpr(left,false);//向左转
         if(operatorInfoLeft.isLeftCondition()){//如果左边的表达式成立才会添加连接符,但是不保证后面不删除,因为要考虑到右边的表达式
             operatorInfoLeft.setOperatorStartIndex(getAppendLength() - 1);
+            print0("  ");
             printOperator(operator);//表达式连接符
             operatorInfoLeft.setOperatorEndIndex(getAppendLength() - 1);
         }
@@ -402,7 +385,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
         }
 
         if(!operatorInfoMpa.isEmpty()){
-            OperatorInfo operatorInfo = operatorInfoMpa.get(right.getParent().toString());
+            OperatorInfo operatorInfo = operatorInfoMpa.get(right.getParent().hashCode());
             if(operatorInfo != null && (operatorInfo.getOperatorStartIndex() != 0 || operatorInfo.getOperatorEndIndex() != 0 )){
                 boolean ok = operatorInfo.isOk();
                 if(!ok){//如果两边的表达式不成立的话,那么就要删除中间所添加的连接符
@@ -435,8 +418,10 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
     private void deleteStr(int startIndex,int endIndex){
         if(appender instanceof StringBuffer){
             ((StringBuffer) appender).delete(startIndex, endIndex);//删除目标字符
+            ((StringBuffer) appender).append("\n");
         }else if(appender instanceof StringBuilder){//同上
            ((StringBuilder) appender).delete(startIndex, endIndex);
+           ((StringBuilder) appender).append("\n");
         }
 
     }
@@ -531,7 +516,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
                     whereInfo.addConditionCount();//计数器+1
                 }
 
-                OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().toString());
+                OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().hashCode());
                 if(operatorInfo != null){//判断是否为空
                     if(isRight){//判断是否是左边还是右边的表达式
                         operatorInfo.setRightCondition(true);
@@ -541,9 +526,9 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
                 }
             }
         }else{
-            OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().toString());
+            OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().hashCode());
             printExpr(sqlExpr);
-            OperatorInfo info = operatorInfoMpa.get(sqlExpr.toString());
+            OperatorInfo info = operatorInfoMpa.get(sqlExpr.hashCode());
             if(info.isLeftCondition() || info.isRightCondition()){
                 if(isRight){
                    operatorInfo.setRightCondition(true);
@@ -579,7 +564,7 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
     }
 
     private void effectOperatorInfo(SQLExpr sqlExpr,boolean isRight){
-        OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().toString());
+        OperatorInfo operatorInfo = operatorInfoMpa.get(sqlExpr.getParent().hashCode());
         if(operatorInfo != null){//判断是否为空
             if(isRight){//判断是否是左边还是右边的表达式
                 operatorInfo.setRightCondition(true);
