@@ -7,13 +7,13 @@
 3. 支持DELETE 语句
 3. 支持INSERT INTO 语句
 ***
-       反正自己测试通过了,关于性能问题,后面在进行优化,下一步将会精简druid的jar包,只保留ql解析部分
+       反正自己测试通过了,关于性能问题,后面在进行优化
 ***
        
 ## 使用方法        
     例如有这样的sql语句:select * from ccp_mem where Name = ? and Age = ?
     请看代码:
-    ```
+```
      public void test(){
             String sql = "select * from ccp_mem where Name = ? and Age = ?";
             List<String> para = new ArrayList<>();
@@ -21,10 +21,10 @@
             String s = ZSQLUtils.mysqSqlFilter(sql, para);
             System.out.println(s);
         }     
-    ```
+```
     结果如下;
-    ```
+```
         SELECT *
         FROM ccp_mem
         WHERE  Name = ? 
-    ```    
+```    
