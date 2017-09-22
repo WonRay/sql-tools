@@ -12,7 +12,7 @@ import java.util.List;
  * */
 public abstract class ZSQLUtils {
 
-    public static String mysqlSqlFilter(String sql, List<String> conditionNames){
+    public static String mysqSqlFilter(String sql, List<String> conditionNames){
         MySqlStatementParser parser = new MySqlStatementParser(sql);
         SQLStatement sqlStatement = parser.parseStatement();
         StringBuilder buffer = new StringBuilder();
