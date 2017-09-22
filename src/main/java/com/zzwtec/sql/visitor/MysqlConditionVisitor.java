@@ -466,6 +466,9 @@ public class MysqlConditionVisitor extends MySqlOutputVisitor {
             }else if(right instanceof SQLBooleanExpr){
                 handCondition(sqlExpr,isRight);
                 return;
+            }else if(right instanceof SQLIdentifierExpr){
+                handCondition(sqlExpr,isRight);
+                return;
             }
 
 
