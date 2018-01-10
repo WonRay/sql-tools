@@ -31,3 +31,7 @@ hs_err_pid*
 .idea/vcs.xml
 .idea/workspace.xml
 sql-utils.iml
+
+\.idea/
+
+target/
