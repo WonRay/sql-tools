@@ -19,10 +19,8 @@ import com.alibaba.druid.sql.FnvHash;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLName;
-import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.expr.SQLPropertyExpr;
-import com.alibaba.druid.sql.repository.SchemaObject;
 import com.alibaba.druid.sql.visitor.SQLASTVisitor;
 
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ public class SQLExprTableSource extends SQLTableSourceImpl {
 
     protected SQLExpr     expr;
     private List<SQLName> partitions;
-    private SchemaObject  schemaObject;
 
     public SQLExprTableSource(){
 
@@ -188,13 +185,6 @@ public class SQLExprTableSource extends SQLTableSourceImpl {
         }
     }
 
-    public SchemaObject getSchemaObject() {
-        return schemaObject;
-    }
-
-    public void setSchemaObject(SchemaObject schemaObject) {
-        this.schemaObject = schemaObject;
-    }
 
     public boolean containsAlias(String alias) {
         long hashCode64 = FnvHash.hashCode64(alias);
@@ -231,18 +221,7 @@ public class SQLExprTableSource extends SQLTableSourceImpl {
         return findColumn(hash);
     }
 
-    public SQLColumnDefinition findColumn(long columnNameHash) {
-        if (schemaObject == null) {
-            return null;
-        }
 
-        SQLStatement stmt = schemaObject.getStatement();
-        if (stmt instanceof SQLCreateTableStatement) {
-            SQLCreateTableStatement createTableStmt = (SQLCreateTableStatement) stmt;
-            return createTableStmt.findColumn(columnNameHash);
-        }
-        return null;
-    }
 
     public SQLTableSource findTableSourceWithColumn(String columnName) {
         if (columnName == null) {
@@ -254,15 +233,7 @@ public class SQLExprTableSource extends SQLTableSourceImpl {
     }
 
     public SQLTableSource findTableSourceWithColumn(long columnName_hash) {
-        if (schemaObject != null) {
-            SQLStatement stmt = schemaObject.getStatement();
-            if (stmt instanceof SQLCreateTableStatement) {
-                SQLCreateTableStatement createTableStmt = (SQLCreateTableStatement) stmt;
-                if (createTableStmt.findColumn(columnName_hash) != null) {
-                    return this;
-                }
-            }
-        }
+
 
         if (expr instanceof SQLIdentifierExpr) {
             SQLTableSource tableSource = ((SQLIdentifierExpr) expr).getResolvedTableSource();

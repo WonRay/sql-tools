@@ -16,7 +16,7 @@
 package com.alibaba.druid.sql.visitor;
 
 import com.alibaba.druid.sql.JdbcConstants;
-import com.alibaba.druid.sql.JdbcUtils;
+import com.alibaba.druid.sql.JdbcConstants;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.*;
 import com.alibaba.druid.sql.ast.expr.*;
@@ -1297,7 +1297,7 @@ public class SQLASTOutputVisitor extends SQLASTVisitorAdapter implements Paramet
 
             if (this.parameterized) {
                 if (size == 2 && i == 1 && param instanceof SQLCharExpr) {
-                    if (JdbcUtils.ORACLE.equals(dbType)) {
+                    if (JdbcConstants.ORACLE.equals(dbType)) {
                         if ("TO_CHAR".equalsIgnoreCase(function)
                                 || "TO_DATE".equalsIgnoreCase(function)) {
                             printChars(((SQLCharExpr) param).getText());

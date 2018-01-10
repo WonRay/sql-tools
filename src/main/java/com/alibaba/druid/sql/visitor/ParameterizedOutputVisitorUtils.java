@@ -15,7 +15,7 @@
  */
 package com.alibaba.druid.sql.visitor;
 
-import com.alibaba.druid.sql.JdbcUtils;
+import com.alibaba.druid.sql.JdbcConstants;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.dialect.db2.visitor.DB2OutputVisitor;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
@@ -92,34 +92,34 @@ public class ParameterizedOutputVisitorUtils {
     }
 
     public static ParameterizedVisitor createParameterizedOutputVisitor(Appendable out, String dbType) {
-        if (JdbcUtils.ORACLE.equals(dbType) || JdbcUtils.ALI_ORACLE.equals(dbType)) {
+        if (JdbcConstants.ORACLE.equals(dbType) || JdbcConstants.ALI_ORACLE.equals(dbType)) {
             return new OracleParameterizedOutputVisitor(out);
         }
 
-        if (JdbcUtils.MYSQL.equals(dbType)
-            || JdbcUtils.MARIADB.equals(dbType)
-            || JdbcUtils.H2.equals(dbType)) {
+        if (JdbcConstants.MYSQL.equals(dbType)
+            || JdbcConstants.MARIADB.equals(dbType)
+            || JdbcConstants.H2.equals(dbType)) {
             return new MySqlOutputVisitor(out, true);
         }
 
-        if (JdbcUtils.POSTGRESQL.equals(dbType)
-                || JdbcUtils.ENTERPRISEDB.equals(dbType)) {
+        if (JdbcConstants.POSTGRESQL.equals(dbType)
+                || JdbcConstants.ENTERPRISEDB.equals(dbType)) {
             return new PGOutputVisitor(out, true);
         }
 
-        if (JdbcUtils.SQL_SERVER.equals(dbType) || JdbcUtils.JTDS.equals(dbType)) {
+        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcConstants.JTDS.equals(dbType)) {
             return new SQLServerOutputVisitor(out, true);
         }
 
-        if (JdbcUtils.DB2.equals(dbType)) {
+        if (JdbcConstants.DB2.equals(dbType)) {
             return new DB2OutputVisitor(out, true);
         }
 
-        if (JdbcUtils.PHOENIX.equals(dbType)) {
+        if (JdbcConstants.PHOENIX.equals(dbType)) {
             return new PhoenixOutputVisitor(out, true);
         }
 
-        if (JdbcUtils.ELASTIC_SEARCH.equals(dbType)) {
+        if (JdbcConstants.ELASTIC_SEARCH.equals(dbType)) {
             return new MySqlOutputVisitor(out, true);
         }
 

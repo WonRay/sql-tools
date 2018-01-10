@@ -104,19 +104,19 @@ public class SQLEvalVisitorUtils {
     }
 
     public static SQLEvalVisitor createEvalVisitor(String dbType) {
-        if (JdbcUtils.MYSQL.equals(dbType)) {
+        if (JdbcConstants.MYSQL.equals(dbType)) {
             return new MySqlEvalVisitorImpl();
         }
 
-        if (JdbcUtils.MARIADB.equals(dbType)) {
+        if (JdbcConstants.MARIADB.equals(dbType)) {
             return new MySqlEvalVisitorImpl();
         }
 
-        if (JdbcUtils.H2.equals(dbType)) {
+        if (JdbcConstants.H2.equals(dbType)) {
             return new MySqlEvalVisitorImpl();
         }
 
-        if (JdbcUtils.ORACLE.equals(dbType) || JdbcUtils.ALI_ORACLE.equals(dbType)) {
+        if (JdbcConstants.ORACLE.equals(dbType) || JdbcConstants.ALI_ORACLE.equals(dbType)) {
             return new OracleEvalVisitor();
         }
 
@@ -125,11 +125,11 @@ public class SQLEvalVisitorUtils {
             return new PGEvalVisitor();
         }
 
-        if (JdbcUtils.SQL_SERVER.equals(dbType) || JdbcUtils.JTDS.equals(dbType)) {
+        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcConstants.JTDS.equals(dbType)) {
             return new SQLServerEvalVisitor();
         }
 
-        if (JdbcUtils.DB2.equals(dbType)) {
+        if (JdbcConstants.DB2.equals(dbType)) {
             return new DB2EvalVisitor();
         }
         

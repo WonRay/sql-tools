@@ -86,7 +86,7 @@ public class PagerUtils {
             return limitDB2(select, dbType, offset, count, check);
         }
 
-        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcUtils.JTDS.equals(dbType)) {
+        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcConstants.JTDS.equals(dbType)) {
             return limitSQLServer(select, dbType, offset, count, check);
         }
 
@@ -477,7 +477,7 @@ public class PagerUtils {
             return new PGSelectQueryBlock();
         }
 
-        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcUtils.JTDS.equals(dbType)) {
+        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcConstants.JTDS.equals(dbType)) {
             return new SQLServerSelectQueryBlock();
         }
 

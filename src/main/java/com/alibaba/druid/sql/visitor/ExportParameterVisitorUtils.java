@@ -15,7 +15,7 @@
  */
 package com.alibaba.druid.sql.visitor;
 
-import com.alibaba.druid.sql.JdbcUtils;
+import com.alibaba.druid.sql.JdbcConstants;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLObject;
 import com.alibaba.druid.sql.ast.expr.*;
@@ -37,30 +37,30 @@ public final class ExportParameterVisitorUtils {
 
     public static ExportParameterVisitor createExportParameterVisitor(final  Appendable out , final String dbType) {
         
-        if (JdbcUtils.MYSQL.equals(dbType)) {
+        if (JdbcConstants.MYSQL.equals(dbType)) {
             return new MySqlExportParameterVisitor(out);
         }
-        if (JdbcUtils.ORACLE.equals(dbType) || JdbcUtils.ALI_ORACLE.equals(dbType)) {
+        if (JdbcConstants.ORACLE.equals(dbType) || JdbcConstants.ALI_ORACLE.equals(dbType)) {
             return new OracleExportParameterVisitor(out);
         }
-        if (JdbcUtils.DB2.equals(dbType)) {
+        if (JdbcConstants.DB2.equals(dbType)) {
             return new DB2ExportParameterVisitor(out);
         }
         
-        if (JdbcUtils.MARIADB.equals(dbType)) {
+        if (JdbcConstants.MARIADB.equals(dbType)) {
             return new MySqlExportParameterVisitor(out);
         }
         
-        if (JdbcUtils.H2.equals(dbType)) {
+        if (JdbcConstants.H2.equals(dbType)) {
             return new MySqlExportParameterVisitor(out);
         }
 
-        if (JdbcUtils.POSTGRESQL.equals(dbType)
-                || JdbcUtils.ENTERPRISEDB.equals(dbType)) {
+        if (JdbcConstants.POSTGRESQL.equals(dbType)
+                || JdbcConstants.ENTERPRISEDB.equals(dbType)) {
             return new PGExportParameterVisitor(out);
         }
 
-        if (JdbcUtils.SQL_SERVER.equals(dbType) || JdbcUtils.JTDS.equals(dbType)) {
+        if (JdbcConstants.SQL_SERVER.equals(dbType) || JdbcConstants.JTDS.equals(dbType)) {
             return new MSSQLServerExportParameterVisitor(out);
         }
        return new ExportParameterizedOutputVisitor(out);
