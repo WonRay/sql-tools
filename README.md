@@ -1,5 +1,5 @@
-# sql-utils
-    sql解析工具基于druid的小工具,能够根据参数动态的剔除sql语句中的条件.
+# sql-tools
+    sql解析工具基于druid的小工具,能够根据参数动态的剔除sql语句中的条件.
 ## 初步完成  目前只支持mysql
 1. 支持SELECT 语句 92 语法和99语法
 2. 支持UPDATE 语句
